@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>CBT DEMO</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Based Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        #main-container {
+             width: 100%;
+             max-width: 700px;
+        }
+        #start-screen {
+            background-color: #fff;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        #start-screen h1 { color: #006400; margin-bottom: 15px; }
+        #start-screen p { margin-bottom: 25px; line-height: 1.6; color: #555; }
+        #start-btn {
+            background-color: #006400; color: white; border: none; padding: 15px 30px;
+            border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #start-btn:hover { background-color: #004d00; }
+        
+        #wrapper {
+            display: none; /* Hidden until test starts */
+            flex-direction: column;
+            gap: 15px;
+        }
+        #proctor-container {
+            background-color: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 15px;
+            display: flex; justify-content: space-between; align-items: center; gap: 15px;
+        }
+        #video-feed { width: 120px; height: 90px; border-radius: 8px; background-color: #000; transform: scaleX(-1); }
+        #proctor-info { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+        #proctor-status { font-weight: 600; font-size: 16px; }
+        #proctor-status.monitoring { color: #0f5132; }
+        #proctor-status.error { color: #842029; }
+        #strike-counter { font-weight: 600; font-size: 14px; color: #842029; }
+        #strike-log { font-size: 12px; color: #6c757d; height: 1.2em; }
+        
+        .visualizer-container {
+            font-size: 10px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .visualizer-label { width: 65px; }
+        .visualizer-bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .visualizer-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #007bff;
+            border-radius: 4px;
+            transition: width 0.1s linear;
+        }
+
+        #quiz-container {
+            background-color: #ffffff; border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%; overflow: hidden; position: relative;
+        }
+        #section-indicator {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 100, 0, 0.95);
+            color: white; display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 20; text-align: center; padding: 20px;
+        }
+        #section-indicator h2 { font-size: 28px; margin-bottom: 10px; }
+        #section-indicator p { font-size: 18px; }
+        #quiz-header { background-color: #006400; color: white; padding: 15px 24px; text-align: center; }
+        #quiz-header-top { display: flex; justify-content: space-between; align-items: center; }
+        #open-calc-btn { background: none; border: 1px solid white; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        #quiz-header-content { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 10px; }
+        #quiz-header h1 { font-size: 22px; line-height: 1.2; }
+        #timer { background-color: rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 6px; font-size: 16px; font-weight: 600; }
+        #quiz-main { padding: 20px; }
+        #progress { font-size: 14px; color: #555; margin-bottom: 15px; font-weight: 600; text-align: center; }
+        #question { font-size: 18px; font-weight: 500; line-height: 1.5; margin-bottom: 25px; min-height: 50px; }
+        .options-grid { display: grid; gap: 15px; }
+        .option {
+            display: block; width: 100%; padding: 15px; background-color: #f8f9fa; border: 2px solid #dee2e6;
+            border-radius: 8px; text-align: left; font-size: 16px; cursor: pointer; transition: all 0.2s ease-in-out;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option.correct { background-color: #d1e7dd; border-color: #0f5132; color: #0f5132; font-weight: bold; }
+        .option.incorrect { background-color: #f8d7da; border-color: #842029; color: #842029; }
+        #feedback { margin-top: 20px; font-size: 15px; line-height: 1.5; font-weight: 500; min-height: 60px; padding: 10px; border-radius: 8px; }
+        #navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .nav-btn {
+            border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px;
+            font-weight: 600; cursor: pointer; transition: background-color 0.2s;
+        }
+        #next-btn { background-color: #006400; color: white; visibility: hidden; }
+        #give-up-btn { background-color: #6c757d; color: white; }
+        #result-container { text-align: center; padding: 40px 20px; }
+        #result-container h2 { font-size: 28px; color: #006400; }
+        #score { font-size: 22px; margin: 20px 0; }
+        #restart-btn {
+            background-color: #006400; color: white; border: none; padding: 12px 25px;
+            border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+        #calculator-container {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px;
+            background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 100; display: none;
+        }
+        #calculator-header {
+            padding: 10px; background: #333; color: white; border-top-left-radius: 10px;
+            border-top-right-radius: 10px; cursor: move; display: flex; justify-content: space-between; align-items: center;
+        }
+        #calculator-close-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        #calculator-display { width: 100%; padding: 20px; background: #222; color: white; text-align: right; font-size: 2.5em; border: none; outline: none; }
+        .calculator-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #ccc; }
+        .calculator-keys button { border: none; padding: 20px; font-size: 1.5em; cursor: pointer; background: #f9f9f9; transition: background .2s; }
+        .calculator-keys .operator { background: #f1f1f1; color: #333; }
+        .calculator-keys .equal-sign { grid-column: span 2; background: #006400; color: white; }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <div id="start-screen">
+            <h1>CBT Demo</h1>
+            <p>This is a demo test, You must grant access to your webcam and microphone to proceed. Please ensure you are in a quiet, well-lit room and remain focused on the screen.</p>
+            <button id="start-btn">Get Started</button>
+        </div>
+
+        <div id="wrapper">
+            <div id="proctor-container">
+                <video id="video-feed" muted autoplay playsinline></video>
+                <div id="proctor-info">
+                    <div id="proctor-status">Initializing Proctoring...</div>
+                    <div id="strike-counter">Total Strikes: 0 / 5</div>
+                    <div id="strike-log">System Ready</div>
+                    
+                    <div class="visualizer-container">
+                        <div class="visualizer-label">Sound Level:</div>
+                        <div class="visualizer-bar-bg">
+                            <div id="sound-bar" class="visualizer-bar"></div>
+                        </div>
+                    </div>
+                    <div class="visualizer-container">
+                        <div class="visualizer-label">Motion Level:</div>
+                        <div class="visualizer-bar-bg">
+                            <div id="motion-bar" class="visualizer-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="quiz-container">
+                <div id="calculator-container">
+                    <div id="calculator-header">
+                        <span>Calculator</span>
+                        <button id="calculator-close-btn">&times;</button>
+                    </div>
+                    <input type="text" id="calculator-display" disabled>
+                    <div class="calculator-keys">
+                        <button data-action="clear">C</button><button data-action="delete">DEL</button><button data-action="operator" value="/">÷</button><button data-action="operator" value="*">&times;</button>
+                        <button>7</button><button>8</button><button>9</button><button data-action="operator" value="-">-</button>
+                        <button>4</button><button>5</button><button>6</button><button data-action="operator" value="+">+</button>
+                        <button>1</button><button>2</button><button>3</button><button class="equal-sign" data-action="calculate">=</button>
+                        <button>0</button><button data-action="decimal">.</button>
+                    </div>
+                </div>
+                <div id="section-indicator">
+                    <h2 id="section-title"></h2>
+                    <p id="section-description"></p>
+                </div>
+                <div id="quiz-header">
+                    <div id="quiz-header-top">
+                        <span>&nbsp;</span>
+                        <button id="open-calc-btn">Calculator</button>
+                    </div>
+                    <div id="quiz-header-content">
+                        <h1>Computer Based Test</h1>
+                        <div id="timer">Time Left: 40:00</div>
+                    </div>
+                </div>
+                <div id="quiz-main">
+                    <div id="progress">Question 1 of 80</div>
+                    <p id="question">Loading question...</p>
+                    <div id="options-grid" class="options-grid"></div>
+                    <div id="feedback"></div>
+                    <div id="navigation">
+                        <button id="give-up-btn" class="nav-btn">Give Up</button>
+                        <button id="next-btn" class="nav-btn">Next</button>
+                    </div>
+                </div>
+                <div id="result-container" style="display: none;">
+                    <h2>Test Completed!</h2>
+                    <p id="score">Your score: 0 out of 80</p>
+                    <p id="summary"></p>
+                    <button id="restart-btn">Try Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *** FIXED: Inserted the full list of 80 questions ***
+        const sections = {
+            accounting: [
+    { question: "The primary objective of financial accounting is to:", options: ["Measure employee performance and productivity", "Provide financial information useful to external users for decision-making", "Control internal business operations", "Predict future tax rates"], correct: 1, explanation: "Financial accounting focuses on providing standardized reports like income statements and balance sheets to external stakeholders such as investors, creditors, and regulators." },
+    { question: "The accounting equation can be expressed as:", options: ["Revenue = Assets – Liabilities", "Assets = Liabilities + Equity", "Liabilities = Assets + Equity", "Equity = Revenue + Expenses"], correct: 1, explanation: "This equation represents the foundation of double-entry bookkeeping: every asset is financed either by liabilities (debts) or owners’ equity (capital)." },
+    { question: "Depreciation is best described as:", options: ["A method of reducing product prices", "The allocation of the cost of a fixed asset over its useful life", "A reduction in revenue due to market forces", "The process of revaluing current assets annually"], correct: 1, explanation: "Depreciation systematically allocates the cost of tangible assets like machinery or vehicles over their estimated useful lives, reflecting wear and tear and usage." },
+    { question: "Which accounting principle requires that revenue be recognized when it is earned, not when cash is received?", options: ["Conservatism principle", "Matching principle", "Accrual principle", "Consistency principle"], correct: 2, explanation: "The accrual principle ensures that income is recorded when earned and expenses when incurred, giving a more accurate view of profitability within a period." },
+    { question: "The 'double-entry' system means that:", options: ["Every transaction affects at least two accounts", "All transactions are recorded twice for accuracy", "Revenues are always equal to expenses", "Each account is checked by two accountants"], correct: 0, explanation: "In double-entry bookkeeping, every transaction has a dual effect — one debit and one credit — maintaining the balance of the accounting equation." },
+    { question: "A trial balance is primarily prepared to:", options: ["Calculate profit or loss", "Verify that total debits equal total credits", "Prepare financial ratios", "Determine cash flow"], correct: 1, explanation: "The trial balance serves as a preliminary check for arithmetical accuracy in ledger postings, ensuring that debits and credits are balanced before preparing financial statements." },
+    { question: "The matching concept in accounting requires that:", options: ["Expenses are recognized in the same period as the revenues they help generate", "Assets are recorded at their current market value", "All accounts are reconciled monthly", "Revenues are recorded only when cash is received"], correct: 0, explanation: "The matching principle ensures accurate profit measurement by aligning expenses with related revenues in the same accounting period." },
+    { question: "Which of the following is considered a non-current asset?", options: ["Accounts receivable", "Cash at bank", "Office building", "Inventory"], correct: 2, explanation: "Non-current assets are long-term resources such as land, buildings, and equipment that provide future economic benefits beyond one year." },
+    { question: "The statement of cash flows categorizes cash activities into:", options: ["Revenue, expenditure, and savings", "Operating, investing, and financing activities", "Profit, loss, and adjustments", "Short-term, medium-term, and long-term"], correct: 1, explanation: "Cash flows are classified into operating (daily operations), investing (asset purchases/sales), and financing (loans, dividends, or share issues) categories." },
+    { question: "An auditor’s primary role in financial reporting is to:", options: ["Prepare financial statements", "Ensure tax compliance", "Express an independent opinion on the fairness of financial statements", "Detect all instances of fraud"], correct: 2, explanation: "Auditors provide independent assurance that financial statements are prepared in accordance with applicable standards and fairly represent the entity’s financial position." },
+    { question: "The accrual basis of accounting differs from the cash basis because it:", options: ["Records transactions only when cash is received or paid", "Recognizes revenues and expenses when they occur, not when cash changes hands", "Does not require financial statements", "Focuses only on short-term liquidity"], correct: 1, explanation: "Accrual accounting reflects the true economic activities of a business by recording transactions as they occur, regardless of cash movement." },
+    { question: "Inventory valuation methods such as FIFO and LIFO affect:", options: ["The computation of depreciation", "The presentation of the cash flow statement", "The cost of goods sold and net income", "The equity section of the balance sheet"], correct: 2, explanation: "FIFO (First-In, First-Out) and LIFO (Last-In, First-Out) determine how inventory costs are assigned, impacting gross profit and taxable income." },
+    { question: "A contingent liability should be disclosed in the financial statements if:", options: ["The obligation is probable and can be reasonably estimated", "It is certain to occur", "It has already been paid", "It is minor and insignificant"], correct: 0, explanation: "Contingent liabilities, like pending lawsuits, are disclosed when the outcome is probable and measurable, to ensure transparency to users of financial statements." },
+    { question: "In cost accounting, fixed costs are those that:", options: ["Change proportionally with production volume", "Remain constant regardless of production volume within a relevant range", "Are always variable in the short term", "Include only raw materials"], correct: 1, explanation: "Fixed costs, such as rent and salaries, do not vary with output level — they remain constant within a given production range." },
+    { question: "Which of the following is a limitation of accounting information?", options: ["It is influenced by estimates and judgments", "It provides a historical record", "It is presented in monetary terms", "It follows uniform standards"], correct: 0, explanation: "Accounting often involves estimates (like depreciation or doubtful debts), introducing an element of subjectivity that can affect comparability and precision." },
+    { question: "IFRS stands for:", options: ["International Financial Reporting Standards", "Integrated Fiscal Revenue System", "International Fund Regulation Scheme", "Institutional Financial Review Standards"], correct: 0, explanation: "IFRS are globally recognized accounting standards that ensure consistency and comparability in financial statements across countries." },
+    { question: "The main difference between management accounting and financial accounting is that management accounting:", options: ["Focuses on external reporting", "Is primarily for internal decision-making", "Is regulated by IFRS", "Is historical and not forward-looking"], correct: 1, explanation: "Management accounting provides information for internal managers to plan, control, and make operational decisions, unlike financial accounting aimed at external users." },
+    { question: "Goodwill appears in the balance sheet when:", options: ["A company earns a steady profit over five years", "The market value of assets increases", "A business is acquired for more than the fair value of its net assets", "A company revalues its brand name"], correct: 2, explanation: "Goodwill arises from business combinations where the purchase price exceeds the fair value of identifiable assets and liabilities." },
+    { question: "A bank reconciliation statement is prepared to:", options: ["Adjust bank interest rates", "Compare cash book balances with bank statement balances", "Track customer payments", "Calculate cash flow from operations"], correct: 1, explanation: "Bank reconciliation ensures that discrepancies between the company’s cash book and the bank’s records (like unpresented cheques or deposits in transit) are identified and resolved." },
+    { question: "In partnership accounting, the profit-sharing ratio determines:", options: ["Each partner’s contribution to capital", "Each partner’s share of profit or loss", "The value of goodwill", "The interest payable on drawings"], correct: 1, explanation: "The profit-sharing ratio specifies how partners divide profits (and losses) based on the partnership agreement or, if unspecified, equally by default." }
+],
+
+            commerce: [
+    { question: "Commerce is best defined as:", options: ["All activities connected with production", "All activities that aid trade and distribution", "Buying and selling only", "Manufacturing and processing goods"], correct: 1, explanation: "Commerce includes trade and all auxiliaries to trade, such as transport, banking, and insurance." },
+    { question: "The primary aim of trade is to:", options: ["Earn foreign exchange", "Create employment", "Satisfy human wants", "Develop technology"], correct: 2, explanation: "Trade enables the exchange of goods and services to meet human needs and wants." },
+    { question: "Wholesale trade involves:", options: ["Buying in small quantities", "Selling directly to consumers", "Buying in bulk and selling in smaller lots", "Exporting goods to other countries"], correct: 2, explanation: "Wholesalers buy goods in large quantities from producers and sell them in smaller lots to retailers." },
+    { question: "Which of the following is an example of home trade?", options: ["Importing rice from China", "Selling cocoa to France", "Buying shoes from a local market", "Exporting crude oil"], correct: 2, explanation: "Home trade occurs within a country’s borders — buying from a local market qualifies as home trade." },
+    { question: "Foreign trade is also known as:", options: ["Domestic trade", "International trade", "Retail trade", "E-commerce"], correct: 1, explanation: "Foreign trade refers to trade between two or more countries and is often called international trade." },
+    { question: "Which of the following is an aid to trade?", options: ["Farming", "Mining", "Transportation", "Manufacturing"], correct: 2, explanation: "Transportation facilitates the movement of goods and services, making trade possible." },
+    { question: "Insurance operates on the principle of:", options: ["Saving for the future", "Pooling of risks", "Sharing profits", "Increasing income"], correct: 1, explanation: "Insurance works by pooling risks from many individuals to compensate the few who suffer losses." },
+    { question: "The document sent by a seller to the buyer demanding payment is called:", options: ["Receipt", "Invoice", "Credit note", "Debit note"], correct: 1, explanation: "An invoice is a document issued by the seller requesting payment for goods supplied." },
+    { question: "The right of a seller to recover goods from an insolvent buyer is known as:", options: ["Lien", "Stoppage in transit", "Caveat emptor", "Subrogation"], correct: 1, explanation: "Stoppage in transit allows an unpaid seller to reclaim goods from a buyer who becomes insolvent before delivery." },
+    { question: "A sole proprietorship is owned by:", options: ["Two partners", "Shareholders", "One individual", "The government"], correct: 2, explanation: "A sole proprietorship is owned and managed by one person who bears all profits and losses." },
+    { question: "Which of the following is a limitation of partnership?", options: ["Easy to form", "Unlimited liability", "Separate legal entity", "Continuity of existence"], correct: 1, explanation: "Partners in a general partnership have unlimited liability, meaning personal assets can be used to settle debts." },
+    { question: "A company’s capital that is stated in its memorandum of association is called:", options: ["Issued capital", "Authorized capital", "Paid-up capital", "Called-up capital"], correct: 1, explanation: "Authorized capital is the maximum amount of share capital a company is allowed to issue as stated in its memorandum." },
+    { question: "Which of the following is a function of a commercial bank?", options: ["Printing money", "Issuing treasury bills", "Accepting deposits and granting loans", "Formulating monetary policy"], correct: 2, explanation: "Commercial banks primarily accept deposits and lend money to individuals and businesses." },
+    { question: "The central bank controls credit in the economy through:", options: ["Budget deficit", "Taxation", "Monetary policy", "Fiscal policy"], correct: 2, explanation: "Credit control is part of monetary policy, which the central bank uses to influence the supply of money." },
+    { question: "Which of these is not a characteristic of money?", options: ["Portability", "Durability", "Divisibility", "Instability"], correct: 3, explanation: "Instability is not a characteristic of money; money should maintain stable value to serve effectively." },
+    { question: "Marketing is best described as:", options: ["Advertising products", "Selling goods at profit", "Identifying and satisfying customer needs profitably", "Promoting sales only"], correct: 2, explanation: "Marketing involves identifying, anticipating, and satisfying customer needs profitably." },
+    { question: "When a seller allows a buyer to pay later, it is called:", options: ["Credit sale", "Hire purchase", "Cash sale", "Deferred payment"], correct: 0, explanation: "A credit sale occurs when ownership of goods transfers immediately, but payment is postponed." },
+    { question: "Which of these is a function of a warehouse?", options: ["Risk bearing", "Price determination", "Goods distribution", "Storage of goods"], correct: 3, explanation: "A warehouse primarily provides safe storage for goods until they are needed for sale or production." },
+    { question: "Visible trade refers to:", options: ["Trade in services only", "Trade in tangible goods", "Invisible exports", "E-commerce transactions"], correct: 1, explanation: "Visible trade involves the exchange of physical goods such as machinery or food items between nations." },
+    { question: "A market structure where there is only one seller is called:", options: ["Monopoly", "Oligopoly", "Perfect competition", "Monopolistic competition"], correct: 0, explanation: "A monopoly exists when a single firm controls the supply of a product or service without close substitutes." }
+],
+
+         economics: [
+    { question: "Economics is best defined as:", options: ["The study of money and banking", "The study of human behavior as a relationship between ends and scarce means", "The study of production and distribution only", "The study of national income alone"], correct: 1, explanation: "Lionel Robbins defined economics as the science which studies human behavior as a relationship between ends and scarce means which have alternative uses." },
+    { question: "The basic economic problem every society faces is:", options: ["Inflation", "Scarcity", "Poverty", "Unemployment"], correct: 1, explanation: "Scarcity of resources relative to unlimited wants is the central economic problem that every society faces." },
+    { question: "The reward for the factor of production 'land' is called:", options: ["Wage", "Rent", "Profit", "Interest"], correct: 1, explanation: "Landowners receive 'rent' as payment for the use of their land or natural resources." },
+    { question: "In a free market economy, economic decisions are made by:", options: ["The government", "Private individuals and firms", "Trade unions", "Public corporations"], correct: 1, explanation: "In a free market economy, decisions on what, how, and for whom to produce are made by individuals and firms based on price signals." },
+    { question: "An increase in the price of a commodity will lead to:", options: ["A shift in the demand curve to the right", "A shift in the demand curve to the left", "A movement along the demand curve upward", "A movement along the demand curve downward"], correct: 2, explanation: "A price increase causes a movement upward along the same demand curve, showing a decrease in quantity demanded." },
+    { question: "The law of diminishing marginal utility states that:", options: ["Total utility increases at an increasing rate", "As more units of a good are consumed, marginal utility declines", "Consumers derive equal satisfaction from each unit", "Utility remains constant"], correct: 1, explanation: "The more of a commodity a person consumes, the less satisfaction (utility) they get from each additional unit." },
+    { question: "Which of the following is not a characteristic of money?", options: ["Durability", "Portability", "Instability", "Divisibility"], correct: 2, explanation: "Money must be stable in value; instability reduces confidence in its use as a medium of exchange." },
+    { question: "The most liquid form of money is:", options: ["Savings deposit", "Time deposit", "Currency in hand", "Treasury bill"], correct: 2, explanation: "Currency in hand is the most liquid because it can be spent immediately without conversion." },
+    { question: "An economic system in which both the government and individuals make economic decisions is called:", options: ["Capitalist economy", "Command economy", "Traditional economy", "Mixed economy"], correct: 3, explanation: "A mixed economy combines elements of both private enterprise and government control." },
+    { question: "Inflation caused by excessive aggregate demand is known as:", options: ["Cost-push inflation", "Demand-pull inflation", "Creeping inflation", "Hyperinflation"], correct: 1, explanation: "Demand-pull inflation occurs when total spending exceeds production capacity, pushing prices upward." },
+    { question: "GDP measures:", options: ["Total income earned by citizens abroad", "The total market value of all final goods and services produced within a country", "Government expenditure only", "Exports minus imports"], correct: 1, explanation: "Gross Domestic Product (GDP) is the market value of all final goods and services produced within a country's borders in a given period." },
+    { question: "A rise in interest rates will most likely:", options: ["Encourage borrowing", "Discourage savings", "Reduce investment", "Increase money supply"], correct: 2, explanation: "Higher interest rates make borrowing more expensive, discouraging investment by businesses." },
+    { question: "When the government spends more than it earns in revenue, the result is:", options: ["Budget surplus", "Budget deficit", "Balanced budget", "Fiscal stability"], correct: 1, explanation: "A budget deficit occurs when government expenditure exceeds its revenue." },
+    { question: "A monopolist can be best described as:", options: ["A single buyer of a product", "A single seller of a product with no close substitutes", "A large number of small firms", "A market with many sellers"], correct: 1, explanation: "A monopoly exists when a single seller controls the supply of a unique product without close substitutes." },
+    { question: "Which of the following can reduce the problem of double coincidence of wants?", options: ["Barter system", "Use of money", "Trade by exchange", "Self-sufficiency"], correct: 1, explanation: "Money serves as a medium of exchange, eliminating the need for both parties to want each other's goods." },
+    { question: "The term 'invisible trade' refers to:", options: ["Trade in services like insurance and tourism", "Trade in physical goods", "Illegal trade", "Retail trading"], correct: 0, explanation: "Invisible trade involves services such as banking, transport, tourism, and insurance." },
+    { question: "An improvement in technology will likely cause:", options: ["Higher cost of production", "Decrease in productivity", "Increase in output per worker", "Reduction in efficiency"], correct: 2, explanation: "Technological advancement enhances productivity, allowing more output with the same input." },
+    { question: "If supply exceeds demand, it will lead to:", options: ["Increase in price", "Decrease in price", "No change in price", "Increase in demand"], correct: 1, explanation: "Excess supply puts downward pressure on prices as sellers compete to attract buyers." },
+    { question: "Fiscal policy refers to:", options: ["Government regulation of money supply", "Taxation and government spending policies", "Interest rate determination", "Trade control policies"], correct: 1, explanation: "Fiscal policy involves the use of government spending and taxation to influence the economy." },
+    { question: "Which of the following is a leakage in the circular flow of income?", options: ["Investment", "Exports", "Savings", "Government expenditure"], correct: 2, explanation: "Savings reduce the flow of income in the economy since it represents money not spent on goods and services." }
+],
+
+           computer: [
+    { question: "What is the main advantage of using online banking platforms over traditional banking?", options: ["They provide physical bank branches everywhere", "They allow 24/7 access to financial services and real-time transactions", "They eliminate the need for passwords", "They guarantee higher interest rates"], correct: 1, explanation: "Online banking platforms allow users to access and manage their accounts anytime, perform instant transfers, and monitor balances in real time." },
+    { question: "In Microsoft Excel, which function is most commonly used to calculate the total income or expenses in a financial report?", options: ["=AVERAGE()", "=SUM()", "=COUNT()", "=MAX()"], correct: 1, explanation: "The SUM function adds together all numeric values in a range — perfect for calculating totals in financial statements." },
+    { question: "Which of the following best describes 'FinTech'?", options: ["The use of technology to deliver financial services and solutions", "A government tax collection software", "A banking institution for startups", "A social media marketing tool"], correct: 0, explanation: "FinTech combines finance and technology to provide innovative financial products and services like mobile payments, digital wallets, and investment apps." },
+    { question: "When shopping online, which of the following website URLs indicates a secure payment connection?", options: ["http://", "ftp://", "https://", "file://"], correct: 2, explanation: "‘HTTPS’ shows that the website uses encryption to secure financial transactions and protect sensitive data like credit card information." },
+    { question: "In digital financial systems, what is the purpose of two-factor authentication (2FA)?", options: ["To simplify the login process", "To provide an additional layer of security beyond passwords", "To make online banking faster", "To allow multiple users to share one account"], correct: 1, explanation: "2FA enhances security by requiring a second form of verification — often a text code or biometric confirmation — before granting access." },
+    { question: "Which spreadsheet tool helps visualize profit trends over time in a financial report?", options: ["Pie chart", "Line chart", "Scatter plot", "Histogram"], correct: 1, explanation: "A line chart is ideal for showing changes and trends in profits or sales over time, making it useful for financial analysis." },
+    { question: "Electronic Fund Transfer (EFT) refers to:", options: ["Moving cash physically between bank branches", "Digitally transferring money between bank accounts", "Printing electronic receipts", "Uploading documents to a financial database"], correct: 1, explanation: "EFT allows money to move electronically between accounts without using cash or paper checks, ensuring speed and accuracy." },
+    { question: "What is a common risk of performing financial transactions on public Wi-Fi?", options: ["Slow network speed", "Unauthorized access and data theft", "Extra transaction fees", "Bank errors in processing transfers"], correct: 1, explanation: "Public Wi-Fi networks are often insecure, allowing hackers to intercept financial information or login details during online transactions." },
+    { question: "Which of the following is an example of a digital payment system?", options: ["Google Pay", "Microsoft Word", "Adobe Photoshop", "CorelDRAW"], correct: 0, explanation: "Google Pay is a digital payment platform that allows secure, cashless financial transactions using smartphones or online accounts." },
+    { question: "In financial data management, 'data backup' ensures:", options: ["Improved profit margins", "Faster interest computation", "Recovery of financial data in case of system failure", "Automatic tax calculation"], correct: 2, explanation: "Data backup allows financial institutions to recover important files if systems crash, protecting against data loss or corruption." },
+    { question: "What role does encryption play in online financial transactions?", options: ["It increases internet speed", "It converts data into unreadable code to prevent interception", "It stores user passwords in browsers", "It creates colorful dashboards"], correct: 1, explanation: "Encryption converts sensitive information like card numbers into coded text, ensuring secure communication over the internet." },
+    { question: "Which Excel feature is most useful for comparing financial projections across different months?", options: ["PivotTable", "Data Validation", "Conditional Formatting", "Find and Replace"], correct: 0, explanation: "PivotTables summarize and analyze large sets of financial data quickly, allowing easy comparison of figures across months or departments." },
+    { question: "What is an example of cyber fraud in financial ICT?", options: ["Creating a budget in Excel", "Phishing emails pretending to be from a bank", "Using two-factor authentication", "Encrypting financial data"], correct: 1, explanation: "Phishing emails are fake messages that trick users into revealing login or banking details — a major cyber fraud method." },
+    { question: "Which technology allows contactless card payments at stores?", options: ["NFC (Near Field Communication)", "QR Code Scanning", "Barcode Reading", "Bluetooth Streaming"], correct: 0, explanation: "NFC enables short-range wireless communication between a payment card or smartphone and a payment terminal for fast, contactless transactions." },
+    { question: "In a financial spreadsheet, what does 'cell referencing' help with?", options: ["Highlighting all text cells", "Automatically updating formulas when data changes", "Formatting charts", "Backing up data"], correct: 1, explanation: "By referencing cells, formulas can automatically recalculate totals when data in the linked cells change — essential for dynamic financial models." },
+    { question: "What is the role of accounting software like QuickBooks or Sage?", options: ["To design marketing graphics", "To manage and automate financial records, invoices, and reports", "To send social media posts", "To run antivirus scans"], correct: 1, explanation: "Accounting software automates bookkeeping tasks — recording transactions, generating reports, and tracking expenses or profits." },
+    { question: "In online finance, what is the major purpose of a digital signature?", options: ["To improve handwriting quality", "To verify the identity and integrity of digital documents", "To make emails look more formal", "To hide document contents"], correct: 1, explanation: "Digital signatures confirm that a document was sent by a verified source and hasn’t been altered — essential for secure digital contracts and transactions." },
+    { question: "Why do financial institutions use firewalls?", options: ["To improve website design", "To block unauthorized access to networks and safeguard sensitive data", "To calculate customer interest rates", "To store transaction logs"], correct: 1, explanation: "Firewalls protect internal banking systems by filtering incoming and outgoing traffic, preventing hackers from accessing private data." },
+    { question: "Which of the following best explains 'cloud computing' in finance?", options: ["Using remote servers to store and process financial data securely", "A method of cooling bank servers", "An app for weather forecasts", "A physical data warehouse"], correct: 0, explanation: "Cloud computing allows banks and financial firms to use remote data centers for storing, analyzing, and backing up financial information securely." },
+    { question: "In an organization’s payroll system, ICT helps to:", options: ["Decorate payslips", "Automatically calculate employee salaries, taxes, and deductions", "Manually count cash payments", "Encrypt video files"], correct: 1, explanation: "ICT tools automate salary computations, tax deductions, and payslip generation, reducing errors and saving time in payroll management." }
+]
+
+        };
+
+        // --- QUIZ AND PROCTORING VARIABLES ---
+        let structuredQuestions = [], currentQuestionIndex = 0, score = 0, timerInterval;
+        let strikes = 0;
+        const STRIKE_LIMIT = 20;
+        let isProctoringActive = false;
+        
+        // --- MOTION & SOUND DETECTION VARIABLES ---
+        let audioContext, analyser, motionCanvas, motionCtx, lastGrayData;
+        const SOUND_THRESHOLD = 30;
+        const MOTION_THRESHOLD = 500;
+        const PIXEL_DIFFERENCE_THRESHOLD = 20;
+        
+        let strikeTimeout;
+
+        // --- ELEMENT REFERENCES ---
+        const videoEl = document.getElementById('video-feed');
+        const proctorStatusEl = document.getElementById('proctor-status');
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const wrapper = document.getElementById('wrapper');
+        const strikeCounterEl = document.getElementById('strike-counter');
+        const strikeLogEl = document.getElementById('strike-log');
+        const soundBar = document.getElementById('sound-bar');
+        const motionBar = document.getElementById('motion-bar');
+        const progressEl = document.getElementById('progress');
+        const questionEl = document.getElementById('question');
+        const optionsGridEl = document.getElementById('options-grid');
+        const feedbackEl = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const giveUpBtn = document.getElementById('give-up-btn');
+        const quizMainEl = document.getElementById('quiz-main');
+        const resultContainerEl = document.getElementById('result-container');
+        const scoreEl = document.getElementById('score');
+        const summaryEl = document.getElementById('summary');
+        const restartBtn = document.getElementById('restart-btn');
+        const timerEl = document.getElementById('timer');
+        const sectionIndicatorEl = document.getElementById('section-indicator');
+        const sectionTitleEl = document.getElementById('section-title');
+        const sectionDescriptionEl = document.getElementById('section-description');
+        const calculator = document.getElementById('calculator-container');
+        const display = document.getElementById('calculator-display');
+        const keys = document.querySelector('.calculator-keys');
+        const openCalcBtn = document.getElementById('open-calc-btn');
+        const closeCalcBtn = document.getElementById('calculator-close-btn');
+
+        // --- CALCULATOR LOGIC ---
+        let displayValue = '0', firstValue = null, operator = null, waitingForSecondValue = false;
+        function updateDisplay() { display.value = displayValue; }
+        updateDisplay();
+        keys.addEventListener('click', e => {
+            const { target } = e;
+            if (!target.matches('button')) return;
+            const { action } = target.dataset;
+            if (action === 'operator') { handleOperator(target.value); return; }
+            if (action === 'decimal') { inputDecimal(); return; }
+            if (action === 'clear') { clear(); return; }
+            if (action === 'delete') { deleteLast(); return; }
+            if (action === 'calculate') {
+                try {
+                    const result = calculate(firstValue, operator, displayValue);
+                    displayValue = `${parseFloat(result.toFixed(7))}`;
+                    firstValue = result;
+                } catch (error) { displayValue = 'Error'; }
+                waitingForSecondValue = true;
+                operator = null;
+                updateDisplay();
+                return;
+            }
+            inputDigit(target.textContent);
+            updateDisplay();
+        });
+        function inputDigit(digit) {
+            if (waitingForSecondValue) { displayValue = digit; waitingForSecondValue = false; }
+            else { displayValue = displayValue === '0' ? digit : displayValue + digit; }
+        }
+        function inputDecimal() { if (!displayValue.includes('.')) { displayValue += '.'; updateDisplay(); } }
+        function clear() { displayValue = '0'; firstValue = null; operator = null; waitingForSecondValue = false; updateDisplay(); }
+        function deleteLast() { displayValue = displayValue.slice(0, -1) || '0'; updateDisplay(); }
+        function handleOperator(nextOperator) {
+            const value = parseFloat(displayValue);
+            if (operator && waitingForSecondValue) { operator = nextOperator; return; }
+            if (firstValue === null) { firstValue = value; }
+            else if (operator) {
+                const result = calculate(firstValue, operator, value);
+                displayValue = `${parseFloat(result.toFixed(7))}`;
+                firstValue = result;
+                updateDisplay();
+            }
+            waitingForSecondValue = true;
+            operator = nextOperator;
+        }
+        function calculate(first, op, second) {
+            first = parseFloat(first); second = parseFloat(second);
+            if (op === '+') return first + second;
+            if (op === '-') return first - second;
+            if (op === '*') return first * second;
+            if (op === '/') { if (second === 0) throw new Error('Division by zero'); return first / second; }
+            return second;
+        }
+        openCalcBtn.addEventListener('click', () => { calculator.style.display = 'block'; });
+        closeCalcBtn.addEventListener('click', () => { calculator.style.display = 'none'; });
+        const calcHeader = document.getElementById('calculator-header');
+        let isDragging = false, offsetX, offsetY;
+        calcHeader.addEventListener('mousedown', e => {
+            isDragging = true;
+            offsetX = e.clientX - calculator.offsetLeft;
+            offsetY = e.clientY - calculator.offsetTop;
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+        function onMouseMove(e) { if (isDragging) { calculator.style.left = `${e.clientX - offsetX}px`; calculator.style.top = `${e.clientY - offsetY}px`; } }
+        function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
+
+        // --- QUIZ LOGIC ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        function setupQuiz() {
+            const ac = [...sections.accounting];
+            const co = [...sections.commerce];
+            const ec = [...sections.economics];
+            const cp = [...sections.computer];
+           
+            shuffleArray(ac); shuffleArray(co); shuffleArray(ec); shuffleArray(cp);
+            structuredQuestions = [
+                { type: 'section', title: 'Section 1: Accounting', description: 'This section tests your knowledge Financial Accounting.' }, ...ac,
+                { type: 'section', title: 'Section 2: Commerce', description: 'This section assesses your knowledge of commerce.' }, ...co,
+                { type: 'section', title: 'Section 3: Economics', description: 'This section evaluates your knowledge of Economics.' }, ...ec,
+                { type: 'section', title: 'Section 4: Computer', description: 'This section tests your understanding of ICT.' }, ...cp
+            ];
+        }
+        function startTimer(duration) {
+            let timer = duration;
+            timerInterval = setInterval(() => {
+                let minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+                let seconds = (timer % 60).toString().padStart(2, '0');
+                timerEl.textContent = "Time Left: " + minutes + ":" + seconds;
+                if (--timer < 0) { clearInterval(timerInterval); showResults("Time's up!"); }
+            }, 1000);
+        }
+        function showSectionIndicator(title, description) {
+            sectionTitleEl.textContent = title;
+            sectionDescriptionEl.textContent = description;
+            sectionIndicatorEl.style.display = 'flex';
+            quizMainEl.style.visibility = 'hidden';
+            setTimeout(() => {
+                sectionIndicatorEl.style.display = 'none';
+                quizMainEl.style.visibility = 'visible';
+                currentQuestionIndex++;
+                loadQuiz();
+            }, 3000);
+        }
+        function loadQuiz() {
+            if (currentQuestionIndex >= structuredQuestions.length) { showResults(); return; }
+            const current = structuredQuestions[currentQuestionIndex];
+            if (current.type === 'section') { showSectionIndicator(current.title, current.description); return; }
+            const questionNumber = structuredQuestions.slice(0, currentQuestionIndex + 1).filter(item => item.type !== 'section').length;
+            progressEl.textContent = `Question ${questionNumber} of 80`;
+            questionEl.textContent = current.question;
+            optionsGridEl.innerHTML = '';
+            feedbackEl.innerHTML = '';
+            feedbackEl.style.backgroundColor = '';
+            nextBtn.style.visibility = 'hidden';
+            const correctOptionText = current.options[current.correct];
+            current.options.forEach(optionText => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.className = 'option';
+                if (optionText === correctOptionText) { button.dataset.correct = "true"; }
+                button.addEventListener('click', selectAnswer);
+                optionsGridEl.appendChild(button);
+            });
+        }
+        function selectAnswer(e) {
+            const selectedBtn = e.target;
+            const isCorrect = selectedBtn.dataset.correct === "true";
+            const currentQuestion = structuredQuestions[currentQuestionIndex];
+            const explanationText = currentQuestion.explanation || "The correct answer is highlighted.";
+            if (isCorrect) {
+                score++;
+                selectedBtn.classList.add('correct');
+                feedbackEl.innerHTML = `<p style="color: #0f5132;"><strong>Correct!</strong> ${explanationText}</p>`;
+                feedbackEl.style.backgroundColor = '#d1e7dd';
+            } else {
+                selectedBtn.classList.add('incorrect');
+                feedbackEl.innerHTML = `<p style="color: #842029;"><strong>Incorrect.</strong> ${explanationText}</p>`;
+                feedbackEl.style.backgroundColor = '#f8d7da';
+                Array.from(optionsGridEl.children).forEach(btn => { if (btn.dataset.correct === "true") { btn.classList.add('correct'); } });
+            }
+            Array.from(optionsGridEl.children).forEach(btn => btn.disabled = true);
+            nextBtn.style.visibility = 'visible';
+            if (currentQuestionIndex >= structuredQuestions.length - 1) { nextBtn.textContent = 'Show Results'; }
+        }
+        function showResults(reason = "Test Completed!") {
+            isProctoringActive = false;
+            clearInterval(timerInterval);
+            if (videoEl.srcObject) { videoEl.srcObject.getTracks().forEach(track => track.stop()); }
+            quizMainEl.style.display = 'none';
+            resultContainerEl.style.display = 'block';
+            resultContainerEl.querySelector('h2').textContent = reason;
+            scoreEl.textContent = `Your score: ${score} out of 80`;
+            const percentage = (score / 80) * 100;
+            if (percentage >= 75) { summaryEl.textContent = "Exceptional performance! You possess a deep and nuanced understanding."; }
+            else if (percentage >= 50) { summaryEl.textContent = "Commendable score. You have a strong grasp but should refine your advanced knowledge."; }
+            else { summaryEl.textContent = "A challenging test. This highlights areas for significant review and focused study."; }
+        }
+        nextBtn.addEventListener('click', () => { currentQuestionIndex++; if (currentQuestionIndex < structuredQuestions.length) { loadQuiz(); } else { showResults(); } });
+        giveUpBtn.addEventListener('click', () => { showResults("Test Ended by User"); });
+        restartBtn.addEventListener('click', () => { window.location.reload(); });
+        
+        // --- PROCTORING AND DETECTION LOGIC ---
+        async function setupProctoring() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoEl.srcObject = stream;
+                await videoEl.play();
+
+                proctorStatusEl.textContent = "Monitoring Active";
+                proctorStatusEl.classList.add("monitoring");
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 512;
+                
+                motionCanvas = document.createElement('canvas');
+                motionCanvas.width = 120;
+                motionCanvas.height = 90;
+                motionCtx = motionCanvas.getContext('2d', { willReadFrequently: true });
+                
+                isProctoringActive = true;
+                requestAnimationFrame(runProctoringChecks);
+                return true;
+            } catch (err) {
+                console.error("Proctoring setup failed:", err);
+                proctorStatusEl.textContent = "Access Denied";
+                proctorStatusEl.classList.add("error");
+                alert("Webcam and Microphone access is required. Please allow access and try again.");
+                startScreen.style.display = 'block';
+                wrapper.style.display = 'none';
+                return false;
+            }
+        }
+        
+        function runProctoringChecks() {
+            if (!isProctoringActive) return;
+            
+            detectSound();
+            detectMotion();
+
+            requestAnimationFrame(runProctoringChecks);
+        }
+
+        function detectSound() {
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
+            
+            const soundPercentage = Math.min(100, (average / 50) * 100);
+            soundBar.style.width = `${soundPercentage}%`;
+
+            if (average > SOUND_THRESHOLD) {
+                addStrike("Significant Sound Detected");
+            }
+        }
+        
+        function toGrayscale(data) {
+            const gray = new Uint8Array(data.length / 4);
+            for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+                gray[j] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+            }
+            return gray;
+        }
+
+        function detectMotion() {
+            if (videoEl.readyState < videoEl.HAVE_CURRENT_DATA) return;
+
+            motionCtx.drawImage(videoEl, 0, 0, motionCanvas.width, motionCanvas.height);
+            const currentImageData = motionCtx.getImageData(0, 0, motionCanvas.width, motionCanvas.height);
+            const currentGrayData = toGrayscale(currentImageData.data);
+
+            let changedPixels = 0;
+            if (lastGrayData) {
+                for (let i = 0; i < currentGrayData.length; i++) {
+                    const diff = Math.abs(currentGrayData[i] - lastGrayData[i]);
+                    if (diff > PIXEL_DIFFERENCE_THRESHOLD) {
+                        changedPixels++;
+                    }
+                }
+                
+                const motionPercentage = Math.min(100, (changedPixels / 1500) * 100);
+                motionBar.style.width = `${motionPercentage}%`;
+
+                if (changedPixels > MOTION_THRESHOLD) {
+                    addStrike("Excessive Motion Detected");
+                }
+            }
+            lastGrayData = currentGrayData;
+        }
+
+        function addStrike(reason) {
+            if (strikeTimeout) return;
+            strikes++;
+            strikeCounterEl.textContent = `Total Strikes: ${strikes} / ${STRIKE_LIMIT}`;
+            strikeLogEl.textContent = `Warning: ${reason}`;
+            if (strikes >= STRIKE_LIMIT) {
+                showResults("Test Terminated: Violation Limit Exceeded");
+            }
+            strikeTimeout = setTimeout(() => {
+                strikeTimeout = null;
+                strikeLogEl.textContent = "System Ready";
+            }, 2000);
+        }
+
+        // --- MAIN INITIALIZER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            startBtn.addEventListener('click', async () => {
+                startScreen.style.display = 'none';
+                wrapper.style.display = 'flex';
+
+                const proctoringReady = await setupProctoring();
+
+                if (proctoringReady) {
+                    setupQuiz();
+                    startTimer(60 * 40); // 40 minutes
+                    loadQuiz();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
