@@ -524,3 +524,21 @@ body {
   font-family: monospace;
   letter-spacing: 1px;
 }
+
+
+
+
+
+
+/* Answer selected (pending server grading) */
+.option.selected {
+  background-color: #e7f1ff;
+  border-color: #006400;
+  font-weight: 600;
+}
+
+/* Hide unused states (kept for backwards-compat) */
+.option.correct,
+.option.incorrect {
+  /* no longer used in client */
+}

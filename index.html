@@ -32,7 +32,6 @@
 
     <!-- WRAPPER: proctor + quiz -->
     <div id="wrapper">
-      <!-- PROCTOR PANEL -->
       <div id="proctor-container">
         <video id="video-feed" muted autoplay playsinline></video>
         <div id="proctor-info">
@@ -41,22 +40,17 @@
           <div id="strike-log">System Ready</div>
           <div class="visualizer-container">
             <div class="visualizer-label">Sound Level:</div>
-            <div class="visualizer-bar-bg">
-              <div id="sound-bar" class="visualizer-bar"></div>
-            </div>
+            <div class="visualizer-bar-bg"><div id="sound-bar" class="visualizer-bar"></div></div>
           </div>
           <div class="visualizer-container">
             <div class="visualizer-label">Motion Level:</div>
-            <div class="visualizer-bar-bg">
-              <div id="motion-bar" class="visualizer-bar"></div>
-            </div>
+            <div class="visualizer-bar-bg"><div id="motion-bar" class="visualizer-bar"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- QUIZ CONTAINER -->
       <div id="quiz-container">
-        <!-- CALCULATOR (hidden by default) -->
+        <!-- CALCULATOR -->
         <div id="calculator-container">
           <div id="calculator-header">
             <span>Calculator</span>
@@ -92,7 +86,7 @@
 
         <!-- MAIN QUIZ AREA -->
         <div id="quiz-main">
-          <div id="progress">Question 1 of 80</div>
+          <div id="progress">Question 1 of 40</div>
           <p id="question">Loading question...</p>
           <div id="options-grid" class="options-grid"></div>
           <div id="feedback"></div>
@@ -105,7 +99,7 @@
         <!-- RESULT SCREEN -->
         <div id="result-container" style="display: none;">
           <h2>Test Completed!</h2>
-          <p id="score">Your score: 0 out of 80</p>
+          <p id="score">Your score: 0 out of 40</p>
           <p id="summary"></p>
           <button id="restart-btn">Try Again</button>
         </div>
@@ -113,8 +107,6 @@
     </div>
   </div>
 
-  <script src="questions.js"></script>
-  <script src="users.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
