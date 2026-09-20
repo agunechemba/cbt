@@ -1,0 +1,526 @@
+/* style.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f4f7f9;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+#main-container {
+  width: 100%;
+  max-width: 700px;
+  transition: max-width 0.3s ease;
+}
+
+/* On desktop, allow a wider layout so proctor + quiz can sit side by side */
+@media (min-width: 900px) {
+  #main-container {
+    max-width: 1100px;
+  }
+}
+
+#start-screen {
+  background-color: #fff;
+  padding: 30px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+#start-screen h1 {
+  color: #006400;
+  margin-bottom: 15px;
+}
+
+#start-screen p {
+  margin-bottom: 25px;
+  line-height: 1.6;
+  color: #555;
+}
+
+#start-btn {
+  background-color: #006400;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#start-btn:hover {
+  background-color: #004d00;
+}
+
+#start-btn:disabled {
+  background-color: #8aa88a;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   WRAPPER — layout container for proctor panel + quiz
+   Default (mobile/tablet): stacked vertically
+   Desktop (≥900px): proctor on LEFT, quiz on RIGHT
+   ============================================================ */
+#wrapper {
+  display: none;
+  flex-direction: column;
+  gap: 15px;
+}
+
+@media (min-width: 900px) {
+  #wrapper {
+    display: none; /* still hidden until start */
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  /* Once the JS sets display:flex, this rule keeps it as a row on desktop */
+  #wrapper[style*="display: flex"],
+  #wrapper[style*="display:flex"] {
+    flex-direction: row;
+  }
+}
+
+/* ============================================================
+   PROCTOR PANEL
+   On mobile: full width, horizontal layout inside
+   On desktop: fixed-width column on the left, vertical stack inside
+   ============================================================ */
+#proctor-container {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Desktop: sticky sidebar look on the left */
+@media (min-width: 900px) {
+  #proctor-container {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 15px;
+    gap: 12px;
+  }
+}
+
+#video-feed {
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  background-color: #000;
+  transform: scaleX(-1);
+}
+
+@media (min-width: 900px) {
+  #video-feed {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+#proctor-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#proctor-status {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+#proctor-status.monitoring {
+  color: #0f5132;
+}
+
+#proctor-status.error {
+  color: #842029;
+}
+
+#strike-counter {
+  font-weight: 600;
+  font-size: 14px;
+  color: #842029;
+}
+
+#strike-log {
+  font-size: 12px;
+  color: #6c757d;
+  height: 1.2em;
+}
+
+.visualizer-container {
+  font-size: 10px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.visualizer-label {
+  width: 65px;
+}
+
+.visualizer-bar-bg {
+  flex-grow: 1;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.visualizer-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* ============================================================
+   QUIZ CONTAINER — fills remaining space on desktop
+   ============================================================ */
+#quiz-container {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+@media (min-width: 900px) {
+  #quiz-container {
+    flex: 1;
+    min-width: 0; /* allows flex child to shrink properly */
+  }
+}
+
+#quiz-header {
+  background-color: #006400;
+  color: white;
+  padding: 15px 24px;
+  text-align: center;
+}
+
+#quiz-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#open-calc-btn {
+  background: none;
+  border: 1px solid white;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#quiz-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+#quiz-header h1 {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+#timer {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#quiz-main {
+  padding: 20px;
+}
+
+#progress {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+#question {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 25px;
+  min-height: 50px;
+}
+
+.options-grid {
+  display: grid;
+  gap: 15px;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.option.correct {
+  background-color: #d1e7dd;
+  border-color: #0f5132;
+  color: #0f5132;
+  font-weight: bold;
+}
+
+.option.incorrect {
+  background-color: #f8d7da;
+  border-color: #842029;
+  color: #842029;
+}
+
+#feedback {
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 500;
+  min-height: 60px;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+#navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.nav-btn {
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#next-btn {
+  background-color: #006400;
+  color: white;
+  visibility: hidden;
+}
+
+#give-up-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+#result-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+#result-container h2 {
+  font-size: 28px;
+  color: #006400;
+}
+
+#score {
+  font-size: 22px;
+  margin: 20px 0;
+}
+
+#restart-btn {
+  background-color: #006400;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#calculator-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  display: none;
+}
+
+#calculator-header {
+  padding: 10px;
+  background: #333;
+  color: white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#calculator-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#calculator-display {
+  width: 100%;
+  padding: 20px;
+  background: #222;
+  color: white;
+  text-align: right;
+  font-size: 2.5em;
+  border: none;
+  outline: none;
+}
+
+.calculator-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: #ccc;
+}
+
+.calculator-keys button {
+  border: none;
+  padding: 20px;
+  font-size: 1.5em;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: background .2s;
+}
+
+.calculator-keys .operator {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.calculator-keys .equal-sign {
+  grid-column: span 2;
+  background: #006400;
+  color: white;
+}
+
+/* === ENTRY CODE UI === */
+#code-entry {
+  margin: 20px auto 15px;
+  max-width: 320px;
+  text-align: left;
+}
+
+.code-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#entry-code {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  font-weight: 600;
+}
+
+#entry-code:focus {
+  border-color: #006400;
+  box-shadow: 0 0 0 3px rgba(0, 100, 0, 0.15);
+}
+
+#entry-code.error {
+  border-color: #842029;
+  box-shadow: 0 0 0 3px rgba(132, 32, 41, 0.15);
+}
+
+#entry-code.success {
+  border-color: #0f5132;
+  box-shadow: 0 0 0 3px rgba(15, 81, 50, 0.15);
+}
+
+#entry-code:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.code-message {
+  min-height: 20px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.code-message.error   { color: #842029; }
+.code-message.success { color: #0f5132; }
+
+.demo-hint {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 10px 0 20px;
+}
+
+.demo-hint strong {
+  color: #006400;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
