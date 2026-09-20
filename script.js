@@ -285,11 +285,11 @@ async function handleSubmit(reason = "Test Completed!") {
     scoreEl.textContent = `Your score: ${result.score} out of ${result.total} (${result.percentage}%)`;
 
     if (result.percentage >= 75) {
-      summaryEl.textContent = "Exceptional performance! You possess a deep and nuanced understanding.";
+      summaryEl.textContent = "Exceptional performance!.";
     } else if (result.percentage >= 50) {
-      summaryEl.textContent = "Commendable score. You have a strong grasp but should refine your advanced knowledge.";
+      summaryEl.textContent = "Commendable score!.";
     } else {
-      summaryEl.textContent = "A challenging test. This highlights areas for significant review and focused study.";
+      summaryEl.textContent = "Advised to re-sit";
     }
   } catch (err) {
     console.error("Submission failed:", err);
